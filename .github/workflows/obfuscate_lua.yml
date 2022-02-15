@@ -43,16 +43,22 @@ jobs:
           repository: levno-710/Prometheus
           path: prometheus
 
+      - name: "Status"
+        run: |
+          echo "Workspace: $GITHUB_WORKSPACE"
+          echo "PWD: $(pwd)"
+          echo "LS: $(ls -alh)"
+
       - name: "Enter project"
         run: cd "$GITHUB_WORKSPACE/project"
 
       - name: "Save the dirs config"
-        run: echo "${{ github.events.inputs.only }}" > "../dirs.json"
+        run: echo "${{ github.events.inputs.only }}" > "../dirs.json" && cat "../dirs.json"
 
       - name: "Run obfuscator"
         run: |
           jq -c '.[]' "../dirs.json" | while read i; do
-            find . -name "*.lua" -exec lua5.1 ../prometheus/cli.lua --preset Strong --out "{}" "{}" \;
+            find . -name "*.lua" -exec echo "{}" && lua5.1 ../prometheus/cli.lua --preset Strong --out "{}" "{}" \;
           done
 
       - name: "Remove .github"
