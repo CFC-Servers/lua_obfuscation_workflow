@@ -30,6 +30,7 @@ on:
           - Medium
           - Strong
         default: Strong
+        required: false
 
 jobs:
   obfuscate:
