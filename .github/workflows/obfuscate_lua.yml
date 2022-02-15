@@ -3,10 +3,10 @@ name: "Lua obfuscator"
 on:
   workflow_call:
     inputs:
-      dirs:
+      paths:
         type: string
         required: true
-        description: "JSON Array of the dirs that should be obfuscated"
+        description: "JSON Array of the paths that should be obfuscated"
 
       input-branch:
         type: string
@@ -48,16 +48,16 @@ jobs:
       - name: "Set up Lua"
         run: sudo apt install -y lua5.1
 
-      - name: "Save the dirs config"
-        run: echo -e '${{ inputs.dirs }}' > "$GITHUB_WORKSPACE/dirs.json" && cat "$GITHUB_WORKSPACE/dirs.json"
+      - name: "Save the paths config"
+        run: echo -e '${{ inputs.paths }}' > "$GITHUB_WORKSPACE/paths.json" && cat "$GITHUB_WORKSPACE/paths.json"
 
       - name: "Run obfuscator"
         run: |
           cd "$GITHUB_WORKSPACE/project";
-          readarray -t dirs < <(jq -rc '.[]' "$GITHUB_WORKSPACE/dirs.json");
+          readarray -t paths < <(jq -rc '.[]' "$GITHUB_WORKSPACE/paths.json");
 
-          for dir in "${dirs[@]}"; do \
-              find ./$dir -type f -name "*.lua" -exec lua5.1 ../prometheus/cli.lua --preset ${{ inputs.preset }} --out "{}" "{}" \;
+          for path in "${paths[@]}"; do \
+              find ./$path -type f -name "*.lua" -exec lua5.1 ../prometheus/cli.lua --preset ${{ inputs.preset }} --out "{}" "{}" \;
           done;
 
           sleep 1;
