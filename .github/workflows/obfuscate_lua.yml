@@ -27,9 +27,9 @@ on:
         required: false
 
       censor-commits:
-        type: boolean
+        type: string
         description: "Whether or not to censor commit messages"
-        default: false
+        default: 'false'
         required: false
 
 jobs:

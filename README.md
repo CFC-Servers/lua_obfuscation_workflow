@@ -27,8 +27,8 @@ This workflow has five inputs:
  - (Defaults to `Strong`)
 
 **`censor-commits`**
- - A boolean describing whether or not to censor the commit messages on the output branch
- - (Defaults to `false`)
+ - A boolean string describing whether or not to censor the commit messages on the output branch
+ - (Defaults to `'false'`)
 
 
 ## Examples
@@ -50,5 +50,5 @@ jobs:
       output-branch: "obfuscated"
       paths: '["lua/autorun/sh_*","lua/myproject/**/sh_*"]'
       preset: "Strong"
-      censor-commits: true
+      censor-commits: 'true'
 ```
