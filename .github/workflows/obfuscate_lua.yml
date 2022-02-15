@@ -3,20 +3,22 @@ name: "Lua obfuscator"
 on:
   workflow_call:
     inputs:
-      only:
+      dirs:
         type: string
         required: true
         description: "JSON Array of the dirs that should be obfuscated"
 
-      inputBranch:
+      input-branch:
         type: string
         description: "Which branch to clone and obfuscate"
         default: ${{ github.event.repository.default_branch }}
+        required: false
 
-      outputBranch:
+      output-branch:
         type: string
         description: "Which branch to force-push the obfuscated code to"
         default: "obfuscated"
+        required: false
 
 jobs:
   obfuscate:
@@ -29,10 +31,13 @@ jobs:
         with:
           repository: ${{ github.repository }}
           path: project
-          ref: ${{ github.events.inputs.inputBranch }}
+          ref: ${{ github.events.inputs.input-branch }}
 
       - name: "APT Update"
         run: sudo apt update -y
+
+      - name: "Get JQ"
+        run: sudo apt install -y jq
 
       - name: "Set up Lua"
         run: sudo apt install -y lua5.1
@@ -48,12 +53,15 @@ jobs:
           echo "Workspace: $GITHUB_WORKSPACE"
           echo "PWD: $(pwd)"
           echo "LS: $(ls -alh)"
+          echo "Input branch: ${{ github.events.inputs.input-branch }}"
+          echo "Output branch: ${{ github.events.inputs.output-branch }}"
+          echo "Dirs: ${{ github.events.inputs.dirs }}"
 
       - name: "Enter project"
-        run: cd "$GITHUB_WORKSPACE/project"
+        run: cd "./project"
 
       - name: "Save the dirs config"
-        run: echo "${{ github.events.inputs.only }}" > "../dirs.json" && cat "../dirs.json"
+        run: echo "${{ github.events.inputs.dirs }}" > "../dirs.json" && cat "../dirs.json"
 
       - name: "Run obfuscator"
         run: |
@@ -62,7 +70,7 @@ jobs:
           done
 
       - name: "Remove .github"
-        run: rm -rf .github
+        run: rm -rfv .github
 
       - name: "Create VERSION file"
         run: echo -e "${{ github.ref }}" > VERSION
@@ -73,4 +81,4 @@ jobs:
           git config user.email github-actions@github.com
           git add .
           git commit -m "Obfuscation run for: $(cat VERSION)"
-          git push -f origin "HEAD:${{ github.events.inputs.outputBranch }}"
+          git push -f origin "HEAD:${{ github.events.inputs.output-branch }}"
