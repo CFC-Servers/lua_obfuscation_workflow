@@ -57,10 +57,10 @@ jobs:
           readarray -t dirs < <(jq -rc '.[]' "$GITHUB_WORKSPACE/dirs.json");
 
           for dir in "${dirs[@]}"; do \
-              find "./$dir" -name "*.lua" -exec /bin/bash -c 'lua5.1 ../prometheus/cli.lua --preset ${{ inputs.preset }} --out "$0" "$0" &' {} \;
+              find ./$dir -name "*.lua" -exec /bin/bash -c 'lua5.1 ../prometheus/cli.lua --preset ${{ inputs.preset }} --out "$0" "$0" &' {} \;
           done;
 
-          wait $(jobs -p);
+          wait;
 
       - name: "Remove .github"
         run: |
