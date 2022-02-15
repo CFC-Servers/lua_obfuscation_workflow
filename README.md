@@ -41,6 +41,12 @@ This workflow accepts the following inputs:
 ## Examples
 Here are some example workflows using this tool:
 
+ - On every push to `main`, obfuscate the following lua file and push them to the `obfuscated` branch
+    - All lua files prefixed with `sh_` in the `lua/autorun/` dir
+    - All lua files prefixed with `sh_` in the `lua/myproject/` dir or its children
+    - All lua files in the `lua/myproject/client/` dir
+ - Commit messages will not be censored
+ - Uses the "Weak" preset
 ```yml
 name: Obfuscator
 
@@ -55,10 +61,11 @@ jobs:
     with:
       input-branch: "main"
       output-branch: "obfuscated"
-      paths: '["lua/autorun/sh_*","lua/myproject/**/sh_*"]'
-      preset: "Strong"
-      censor-commits: 'true'
+      paths: '["lua/autorun/sh_*","lua/myproject/**/sh_*","lua/myproject/client"]'
+      preset: "Weak"
 ```
+
+---
 
  - On manual dispatch, obfuscate all lua files in `main` and push them to `obfuscated`.
  - Commits on the output branch will be censored.
