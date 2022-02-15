@@ -41,7 +41,9 @@ This workflow accepts the following inputs:
 ## Examples
 Here are some example workflows using this tool:
 
- - On every push to `main`, obfuscate the following lua file and push them to the `obfuscated` branch
+---
+
+ - On every push to `main`, obfuscate the following lua files and push them to the `obfuscated` branch
     - All lua files prefixed with `sh_` in the `lua/autorun/` dir
     - All lua files prefixed with `sh_` in the `lua/myproject/` dir or its children
     - All lua files in the `lua/myproject/client/` dir
@@ -65,24 +67,51 @@ jobs:
       preset: "Weak"
 ```
 
+
 ---
 
- - On manual dispatch, obfuscate all lua files in `main` and push them to `obfuscated`.
- - Commits on the output branch will be censored.
- - Uses the `develop` branch of the Prometheus repo
+
+ - On manual dispatch, allow the user to select a number of options
+ - Will obfuscate all lua files in the `lua/myproject/client/` dir
 ```yml
 name: Obfuscator
 
 on:
   workflow_dispatch:
+    inputs:
+      output-branch:
+        type: string
+        description: "Output branch"
+        required: true
+        default: obfuscated
+      preset:
+        type: choice
+        description: "Which prometheus preset to use"
+        options:
+        - Minify
+        - Vm
+        - Weak
+        - Medium
+        - Strong
+        default: Strong
+      prometheus-branch:
+        type: choice
+        description: "Which prometheus branch to use"
+        options:
+        - master
+        - develop
+      censor-commits:
+        type: boolean
+        description: "Censor commit messages"
 
 jobs:
   run-obfuscator:
     uses: CFC-Servers/lua_obfuscation_workflow/.github/workflows/obfuscate_lua.yml@main
     with:
-      input-branch: "main"
-      output-branch: "obfuscated"
-      preset: "Strong"
-      censor-commits: 'true'
-      prometheus-branch: "develop"
+      input-branch: ${{ github.event.repository.default_branch }}
+      output-branch: ${{ github.event.inputs.output-branch }}
+      preset: ${{ github.event.inputs.preset }}
+      censor-commits: ${{ github.event.inputs.censor-commits }}
+      prometheus-branch: ${{ github.event.inputs.prometheus-branch }}
+      paths: '["lua/myproject/client/"]'
 ```
