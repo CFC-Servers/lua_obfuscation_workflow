@@ -31,7 +31,7 @@ jobs:
         with:
           repository: ${{ github.repository }}
           path: project
-          ref: ${{ github.events.inputs.input-branch }}
+          ref: ${{ inputs.input-branch }}
 
       - name: "APT Update"
         run: sudo apt update -y
@@ -53,15 +53,15 @@ jobs:
           echo "Workspace: $GITHUB_WORKSPACE"
           echo "PWD: $(pwd)"
           echo "LS: $(ls -alh)"
-          echo "Input branch: ${{ github.events.inputs.input-branch }}"
-          echo "Output branch: ${{ github.events.inputs.output-branch }}"
-          echo "Dirs: ${{ github.events.inputs.dirs }}"
+          echo "Input branch: ${{ inputs.input-branch }}"
+          echo "Output branch: ${{ inputs.output-branch }}"
+          echo "Dirs: ${{ inputs.dirs }}"
 
       - name: "Enter project"
         run: cd "./project"
 
       - name: "Save the dirs config"
-        run: echo "${{ github.events.inputs.dirs }}" > "../dirs.json" && cat "../dirs.json"
+        run: echo "${{ inputs.dirs }}" > "../dirs.json" && cat "../dirs.json"
 
       - name: "Run obfuscator"
         run: |
@@ -81,4 +81,4 @@ jobs:
           git config user.email github-actions@github.com
           git add .
           git commit -m "Obfuscation run for: $(cat VERSION)"
-          git push -f origin "HEAD:${{ github.events.inputs.output-branch }}"
+          git push -f origin "HEAD:${{ inputs.output-branch }}"
