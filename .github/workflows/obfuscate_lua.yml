@@ -33,44 +33,26 @@ jobs:
           path: project
           ref: ${{ inputs.input-branch }}
 
-      - name: "APT Update"
-        run: sudo apt update -y
-
-      - name: "Set up Lua"
-        run: sudo apt install -y lua5.1
-
       - name: "Check out the obfuscator"
         uses: actions/checkout@v2
         with:
           repository: levno-710/Prometheus
           path: prometheus
 
-      - name: "Status"
-        run: |
-          echo "Workspace: $GITHUB_WORKSPACE"
-          echo "PWD: $(pwd)"
-          echo "LS: $(ls -alh)"
-          echo "Input branch: ${{ inputs.input-branch }}"
-          echo "Output branch: ${{ inputs.output-branch }}"
-          echo "Dirs: ${{ inputs.dirs }}"
-
-      - name: "Enter project"
-        run: cd "project"
+      - name: "Set up Lua"
+        run: sudo apt update -y && sudo apt install -y lua5.1
 
       - name: "Save the dirs config"
         run: echo "${{ inputs.dirs }}" > "$GITHUB_WORKSPACE/dirs.json" && cat "$GITHUB_WORKSPACE/dirs.json"
 
-      - name: "Status2"
-        run: |
-          cd "$GITHUB_WORKSPACE/project"
-          echo "Workspace: $GITHUB_WORKSPACE"
-          echo "PWD: $(pwd)"
-          echo "LS: $(ls -alh)"
-
       - name: "Run obfuscator"
         run: |
-          cd "$GITHUB_WORKSPACE/project"
-          jq -c '.[]' "$GITHUB_WORKSPACE/dirs.json" | while read i; do find . -name "*.lua" -exec echo "{}" && lua5.1 ../prometheus/cli.lua --preset Strong --out "{}" "{}" \; done
+          cd "$GITHUB_WORKSPACE/project";
+          readarray -t dirs < <(jq -rc '.[]' $GITHUB_WORKSPACE/dirs.json);
+
+          for dir in "${dirs[@]}"; do \
+              find "./$dir" -name "*.lua" -exec sh -c 'lua5.1 ../prometheus/cli.lua --preset Strong --out "{}" "{}" &' \; \
+          done;
 
       - name: "Remove .github"
         run: |
@@ -78,7 +60,9 @@ jobs:
           rm -rfv .github
 
       - name: "Create VERSION file"
-        run: echo -e "${{ github.ref }}" > VERSION
+        run: |
+          cd "$GITHUB_WORKSPACE/project"
+          echo -e "${{ github.ref }}" > VERSION
 
       - name: Push to lua branch
         run: |
