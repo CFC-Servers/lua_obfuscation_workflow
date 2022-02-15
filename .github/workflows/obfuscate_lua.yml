@@ -63,6 +63,12 @@ jobs:
       - name: "Save the dirs config"
         run: echo "${{ inputs.dirs }}" > "../dirs.json" && cat "../dirs.json"
 
+      - name: "Status2"
+        run: |
+          echo "Workspace: $GITHUB_WORKSPACE"
+          echo "PWD: $(pwd)"
+          echo "LS: $(ls -alh)"
+
       - name: "Run obfuscator"
         run: |
           jq -c '.[]' "../dirs.json" | while read i; do
