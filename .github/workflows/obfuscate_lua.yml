@@ -21,14 +21,8 @@ on:
         required: false
 
       preset:
-        type: choice
+        type: string
         description: "Which obfuscation preset to use"
-        options:
-          - Minify
-          - Vm
-          - Weak
-          - Medium
-          - Strong
         default: Strong
         required: false
 
