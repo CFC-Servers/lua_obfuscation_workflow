@@ -26,6 +26,12 @@ on:
         default: Strong
         required: false
 
+      censor-commits:
+        type: boolean
+        description: "Whether or not to censor commit messages"
+        default: false
+        required: false
+
 jobs:
   obfuscate:
     name: "Perform Obfuscation"
@@ -77,11 +83,22 @@ jobs:
           cd "$GITHUB_WORKSPACE/project"
           echo -e "${{ github.sha }}" > VERSION
 
-      - name: Push to lua branch
+      - name: Stage commit
         run: |
           cd "$GITHUB_WORKSPACE/project"
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
           git commit -m "Obfuscation run for: $(cat VERSION)"
+
+      - name: Censor commit messages
+        if: ${{ inputs.censor-commits == 'true' }}
+        run: |
+          cd "$GITHUB_WORKSPACE/project"
+          export FILTER_BRANCH_SQUELCH_WARNING=1
+          git filter-branch -f --msg-filter 'sed "s/[[:alnum:]]/❚/g"' ${{ inputs.input-branch }}..${{ inputs.output-branch }}
+
+      - name: Push to branch
+        run: |
+          cd "$GITHUB_WORKSPACE/project"
           git push -f origin "HEAD:${{ inputs.output-branch }}"

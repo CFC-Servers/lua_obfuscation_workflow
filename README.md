@@ -5,22 +5,30 @@ This uses [Prometheus](https://github.com/levno-710/Prometheus) as the obfuscati
 
 ## Using
 
-This workflow has four inputs:
+This workflow has five inputs:
 
 **`input-branch`**
  - The name of the branch that the tool will obfuscate
+ - (Defaults to the repo's primary branch)
 
 **`output-branch`**
  - Where the tool will force-push the obfuscated code
+ - (Defaults to `obfuscated`)
 
 **`paths`**
  - A JSON array of paths for the obfuscator to act on.
  - This can be any unix-compatible path, including wildcards.
  - i.e. `'["lua/autorun/sh_*","lua/project/client/","lua/project/shared/"]'`
+ - (Defaults to all lua files)
 
 **`preset`**
  - The name of the preset used to configure Prometheus.
  - You can learn more about the available presets [**here**](https://github.com/levno-710/Prometheus/blob/master/doc/getting-started/presets.md)
+ - (Defaults to `Strong`)
+
+**`censor-commits`**
+ - A boolean describing whether or not to censor the commit messages on the output branch
+ - (Defaults to `false`)
 
 
 ## Examples
@@ -42,4 +50,5 @@ jobs:
       output-branch: "obfuscated"
       paths: '["lua/autorun/sh_*","lua/myproject/**/sh_*"]'
       preset: "Strong"
+      censor-commits: true
 ```
