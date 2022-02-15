@@ -1,0 +1,70 @@
+name: "Lua obfuscator"
+
+on:
+  workflow_call:
+    inputs:
+      only:
+        type: string
+        required: true
+        description: "JSON Array of the dirs that should be obfuscated"
+
+      inputBranch:
+        type: string
+        description: "Which branch to clone and obfuscate"
+        default: ${{ github.event.repository.default_branch }}
+
+      outputBranch:
+        type: string
+        description: "Which branch to force-push the obfuscated code to"
+        default: "obfuscated"
+
+jobs:
+  obfuscate:
+    name: "Perform Obfuscation"
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: "Check out the repo"
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ github.repository }}
+          path: project
+          ref: ${{ github.events.inputs.inputBranch }}
+
+      - name: "APT Update"
+        run: sudo apt update -y
+
+      - name: "Set up Lua"
+        run: sudo apt install -y lua5.1
+
+      - name: "Check out the obfuscator"
+        uses: actions/checkout@v2
+        with:
+          repository: levno-710/Prometheus
+          path: prometheus
+
+      - name: "Enter project"
+        run: cd "$GITHUB_WORKSPACE/project"
+
+      - name: "Save the dirs config"
+        run: echo "${{ github.events.inputs.only }}" > "../dirs.json"
+
+      - name: "Run obfuscator"
+        run: |
+          jq -c '.[]' "../dirs.json" | while read i; do
+            find . -name "*.lua" -exec lua5.1 ../prometheus/cli.lua --preset Strong --out "{}" "{}" \;
+          done
+
+      - name: "Remove .github"
+        run: rm -rf .github
+
+      - name: "Create VERSION file"
+        run: echo -e "${{ github.ref }}" > VERSION
+
+      - name: Push to lua branch
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "Obfuscation run for: $(cat VERSION)"
+          git push -f origin "HEAD:${{ github.events.inputs.outputBranch }}"
