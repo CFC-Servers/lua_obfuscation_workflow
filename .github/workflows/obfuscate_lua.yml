@@ -57,10 +57,8 @@ jobs:
           readarray -t dirs < <(jq -rc '.[]' "$GITHUB_WORKSPACE/dirs.json");
 
           for dir in "${dirs[@]}"; do \
-              find "./$dir" -name "*.lua" -exec sh -c 'lua5.1 ../prometheus/cli.lua --preset ${{ inputs.preset }} --out "{}" "{}" &' \;
+              find "./$dir" -name "*.lua" -exec echo "{}" && lua5.1 ../prometheus/cli.lua --preset ${{ inputs.preset }} --out "{}" "{}" \;
           done;
-
-          wait $(jobs -p);
 
       - name: "Remove .github"
         run: |
