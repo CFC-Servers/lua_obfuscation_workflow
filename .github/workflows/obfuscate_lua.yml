@@ -43,7 +43,7 @@ jobs:
         run: sudo apt update -y && sudo apt install -y lua5.1
 
       - name: "Save the dirs config"
-        run: echo "${{ inputs.dirs }}" > "$GITHUB_WORKSPACE/dirs.json" && cat "$GITHUB_WORKSPACE/dirs.json"
+        run: echo -e '${{ inputs.dirs }}' > "$GITHUB_WORKSPACE/dirs.json" && cat "$GITHUB_WORKSPACE/dirs.json"
 
       - name: "Run obfuscator"
         run: |
