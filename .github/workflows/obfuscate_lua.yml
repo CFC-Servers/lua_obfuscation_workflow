@@ -96,8 +96,7 @@ jobs:
         run: |
           cd "$GITHUB_WORKSPACE/project"
           export FILTER_BRANCH_SQUELCH_WARNING=1
-          git fetch origin ${{ inputs.output-branch }}
-          git filter-branch -f --msg-filter 'sed "s/[[:alnum:]]/❚/g"' ${{ inputs.input-branch }}..${{ inputs.output-branch }}
+          git filter-branch -f --msg-filter 'sed "s/[[:alnum:]]/❚/g"'
 
       - name: Push to branch
         run: |
