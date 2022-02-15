@@ -36,9 +36,6 @@ jobs:
       - name: "APT Update"
         run: sudo apt update -y
 
-      - name: "Get JQ"
-        run: sudo apt install -y jq
-
       - name: "Set up Lua"
         run: sudo apt install -y lua5.1
 
@@ -58,31 +55,34 @@ jobs:
           echo "Dirs: ${{ inputs.dirs }}"
 
       - name: "Enter project"
-        run: cd "./project"
+        run: cd "project"
 
       - name: "Save the dirs config"
-        run: echo "${{ inputs.dirs }}" > "../dirs.json" && cat "../dirs.json"
+        run: echo "${{ inputs.dirs }}" > "$GITHUB_WORKSPACE/dirs.json" && cat "$GITHUB_WORKSPACE/dirs.json"
 
       - name: "Status2"
         run: |
+          cd "$GITHUB_WORKSPACE/project"
           echo "Workspace: $GITHUB_WORKSPACE"
           echo "PWD: $(pwd)"
           echo "LS: $(ls -alh)"
 
       - name: "Run obfuscator"
         run: |
-          jq -c '.[]' "../dirs.json" | while read i; do
-            find . -name "*.lua" -exec echo "{}" && lua5.1 ../prometheus/cli.lua --preset Strong --out "{}" "{}" \;
-          done
+          cd "$GITHUB_WORKSPACE/project"
+          jq -c '.[]' "$GITHUB_WORKSPACE/dirs.json" | while read i; do find . -name "*.lua" -exec echo "{}" && lua5.1 ../prometheus/cli.lua --preset Strong --out "{}" "{}" \; done
 
       - name: "Remove .github"
-        run: rm -rfv .github
+        run: |
+          cd "$GITHUB_WORKSPACE/project"
+          rm -rfv .github
 
       - name: "Create VERSION file"
         run: echo -e "${{ github.ref }}" > VERSION
 
       - name: Push to lua branch
         run: |
+          cd "$GITHUB_WORKSPACE/project"
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
