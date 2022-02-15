@@ -48,10 +48,10 @@ jobs:
       - name: "Run obfuscator"
         run: |
           cd "$GITHUB_WORKSPACE/project";
-          readarray -t dirs < <(jq -rc '.[]' $GITHUB_WORKSPACE/dirs.json);
+          readarray -t dirs < <(jq -rc '.[]' "$GITHUB_WORKSPACE/dirs.json");
 
           for dir in "${dirs[@]}"; do \
-              find "./$dir" -name "*.lua" -exec sh -c 'lua5.1 ../prometheus/cli.lua --preset Strong --out "{}" "{}" &' \; \
+              find "./$dir" -name "*.lua" -exec sh -c 'lua5.1 ../prometheus/cli.lua --preset Strong --out "{}" "{}" &' \;
           done;
 
       - name: "Remove .github"
