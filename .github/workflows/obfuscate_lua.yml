@@ -44,6 +44,7 @@ jobs:
           repository: ${{ github.repository }}
           path: project
           ref: ${{ inputs.input-branch }}
+          fetch-depth: 0
 
       - name: "Check out the obfuscator"
         uses: actions/checkout@v2
