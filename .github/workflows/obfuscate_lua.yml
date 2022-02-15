@@ -32,6 +32,18 @@ on:
         default: 'false'
         required: false
 
+      prometheus-repo:
+        type: string
+        description: "A string in the format of 'user/repo' describing where to pull Prometheus from"
+        default: "levno-710/Prometheus"
+        required: false
+
+      prometheus-ref:
+        type: string
+        description: "Which ref (branch, tag, or SHA) of the Prometheus repo to use"
+        default: "master"
+        required: false
+
 jobs:
   obfuscate:
     name: "Perform Obfuscation"
@@ -49,8 +61,9 @@ jobs:
       - name: "Check out the obfuscator"
         uses: actions/checkout@v2
         with:
-          repository: levno-710/Prometheus
+          repository: ${{ inputs.prometheus-repo }}
           path: prometheus
+          ref: ${{ inputs.prometheus-ref }}
 
       - name: "Set up Lua"
         run: sudo apt install -y lua5.1
