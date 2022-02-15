@@ -20,6 +20,17 @@ on:
         default: "obfuscated"
         required: false
 
+      preset:
+        type: choice
+        description: "Which obfuscation preset to use"
+        options:
+          - Minify
+          - Vm
+          - Weak
+          - Medium
+          - Strong
+        default: Strong
+
 jobs:
   obfuscate:
     name: "Perform Obfuscation"
@@ -40,7 +51,7 @@ jobs:
           path: prometheus
 
       - name: "Set up Lua"
-        run: sudo apt update -y && sudo apt install -y lua5.1
+        run: sudo apt install -y lua5.1
 
       - name: "Save the dirs config"
         run: echo -e '${{ inputs.dirs }}' > "$GITHUB_WORKSPACE/dirs.json" && cat "$GITHUB_WORKSPACE/dirs.json"
@@ -51,8 +62,10 @@ jobs:
           readarray -t dirs < <(jq -rc '.[]' "$GITHUB_WORKSPACE/dirs.json");
 
           for dir in "${dirs[@]}"; do \
-              find "./$dir" -name "*.lua" -exec sh -c 'lua5.1 ../prometheus/cli.lua --preset Strong --out "{}" "{}" &' \;
+              find "./$dir" -name "*.lua" -exec sh -c 'lua5.1 ../prometheus/cli.lua --preset ${{ inputs.preset }} --out "{}" "{}" &' \;
           done;
+
+          wait $(jobs -p);
 
       - name: "Remove .github"
         run: |
@@ -62,7 +75,7 @@ jobs:
       - name: "Create VERSION file"
         run: |
           cd "$GITHUB_WORKSPACE/project"
-          echo -e "${{ github.ref }}" > VERSION
+          echo -e "${{ github.sha }}" > VERSION
 
       - name: Push to lua branch
         run: |
