@@ -40,6 +40,6 @@ jobs:
     with:
       input-branch: "main"
       output-branch: "obfuscated"
-      dirs: '["lua/autorun/sh_*","lua/myproject/sh_*","lua/project/client/"]'
+      paths: '["lua/autorun/sh_*","lua/myproject/**/sh_*"]'
       preset: "Strong"
 ```
