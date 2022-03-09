@@ -1,0 +1,104 @@
+name: "Lua obfuscator (noclone)"
+
+on:
+  workflow_call:
+    inputs:
+      paths:
+        type: string
+        required: true
+        description: "JSON Array of the paths that should be obfuscated"
+
+      output-branch:
+        type: string
+        description: "Which branch to force-push the obfuscated code to"
+        default: "obfuscated"
+        required: false
+
+      preset:
+        type: string
+        description: "Which obfuscation preset to use"
+        default: Strong
+        required: false
+
+      censor-commits:
+        type: string
+        description: "Whether or not to censor commit messages"
+        default: 'false'
+        required: false
+
+      prometheus-repo:
+        type: string
+        description: "A string in the format of 'user/repo' describing where to pull Prometheus from"
+        default: "levno-710/Prometheus"
+        required: false
+
+      prometheus-ref:
+        type: string
+        description: "Which ref (branch, tag, or SHA) of the Prometheus repo to use"
+        default: "master"
+        required: false
+
+jobs:
+  obfuscate:
+    name: "Perform Obfuscation"
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: "Check out the obfuscator"
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ inputs.prometheus-repo }}
+          path: prometheus
+          ref: ${{ inputs.prometheus-ref }}
+
+      - name: "Set up Lua"
+        run: sudo apt install -y lua5.1
+
+      - name: "Save the paths config"
+        run: echo -e '${{ inputs.paths }}' > "$GITHUB_WORKSPACE/paths.json" && cat "$GITHUB_WORKSPACE/paths.json"
+
+      - name: "Run obfuscator"
+        run: |
+          cd "$GITHUB_WORKSPACE/project";
+          readarray -t paths < <(jq -rc '.[]' "$GITHUB_WORKSPACE/paths.json");
+
+          for path in "${paths[@]}"; do \
+              find ./$path -type f -name "*.lua" -exec lua5.1 ../prometheus/cli.lua --preset ${{ inputs.preset }} --out "{}" "{}" \;
+          done;
+
+          sleep 1;
+
+      - name: "Git status"
+        run: |
+          cd "$GITHUB_WORKSPACE/project"
+          git status
+
+      - name: "Remove .github"
+        run: |
+          cd "$GITHUB_WORKSPACE/project"
+          rm -rfv .github
+
+      - name: "Create VERSION file"
+        run: |
+          cd "$GITHUB_WORKSPACE/project"
+          echo -e "${{ github.sha }}" > VERSION
+
+      - name: Stage commit
+        run: |
+          cd "$GITHUB_WORKSPACE/project"
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "Obfuscation run for: $(cat VERSION)"
+
+      - name: Censor commit messages
+        if: ${{ inputs.censor-commits == 'true' }}
+        run: |
+          cd "$GITHUB_WORKSPACE/project"
+          export FILTER_BRANCH_SQUELCH_WARNING=1
+          git filter-branch -f --msg-filter 'sed "s/[[:alnum:]]/❚/g"'
+
+      - name: Push to branch
+        run: |
+          cd "$GITHUB_WORKSPACE/project"
+          git push -f origin "HEAD:${{ inputs.output-branch }}"
